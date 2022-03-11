@@ -1,0 +1,76 @@
+# Server Port
+# -----------
+server:
+  port: 8762
+
+# Routes configuration
+# --------------------
+spring:
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: authentication-service
+          uri: lb://authentication-service
+          predicates:
+            - Path=/login/**,/validateToken/**
+          filters:
+            - RewritePath=/login/(?<path>.*), /login/$\{path}
+            - RewritePath=/validateToken/(?<path>.*), /validateToken/$\{path}
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - id: knowledgehub-knowledgehub-service-api-docs
+          uri: lb://knowledgehub-knowledgehub-service
+          predicates:
+            - Path=/knowledgehub-knowledgehub/v3/api-docs/**
+          filters:
+            - RewritePath=/knowledgehub-knowledgehub/(?<path>.*), /$\{path}
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - id: knowledgehub-knowledgehub-service
+          uri: lb://knowledgehub-knowledgehub-service
+          predicates:
+            - Path=/knowledgehub-knowledgehub/**
+          filters:
+            - RewritePath=/knowledgehub-knowledgehub/(?<path>.*), /knowledgehub-knowledgehub/$\{path}
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - id: openapi
+          uri: http://localhost:8762
+          predicates:
+            - Path=/v3/api-docs/**
+          filters:
+            - RewritePath=/v3/api-docs/(?<path>.*), /$\{path}/v3/api-docs
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+# Increase the Hystrix timeout to 60s (globally)
+# ----------------------------------------------
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: THREAD
+          thread:
+            timeoutInMilliseconds: 180000
+  threadpool:
+    default:
+      coreSize: 50
+
+# Requests to the zuul proxy are routed through the Ribbon load balancer and will throw a timeout exception
+# if the response is not obtained within a couple of seconds. Increase the timeout values (as the login to AD
+# can potentially take several seconds.
+# -----------------------------------------------------------------------------------------------------------
+ribbon:
+  ConnectTimeout: 60000
+  ReadTimeout: 120000
+
+# Information that gets displayed in the spring admin UI
+# ------------------------------------------------------
+info:
+  app:
+    name: gateway-service
+    description: Gateway Service for application
+

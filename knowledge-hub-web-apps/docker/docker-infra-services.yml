@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+
+  # Config-Service container
+  # ------------------------
+  config-service:
+    container_name: knowledge-hub-config-service
+    image: img/knowledge-hub-config-service:1.0.0
+    restart: always
+    ports:
+      - "8888:8888"
+
+  # Discovery-Service container
+  # ---------------------------
+  discovery-service:
+    container_name: knowledge-hub-discovery-service
+    image: img/knowledge-hub-discovery-service:1.0.0
+    restart: always
+    depends_on:
+      - config-service
+    ports:
+      - "8761:8761"
+
+  # Gateway service container
+  # -------------------------
+  gateway-service:
+    container_name: knowledge-hub-gateway-service
+    image: img/knowledge-hub-gateway-service:1.0.0
+    restart: always
+    depends_on:
+      - discovery-service
+    ports:
+      - "8762:8762"
+
+  # Authentication-Service container
+  # ------------------------
+  authentication-service:
+    container_name: knowledge-hub-authentication-service
+    image: img/knowledge-hub-authentication-service:1.0.0
+    restart: always
+    ports:
+      - "9527:9527"
+    depends_on:
+      - discovery-service

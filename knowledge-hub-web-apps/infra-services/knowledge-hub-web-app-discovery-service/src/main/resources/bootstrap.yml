@@ -1,0 +1,27 @@
+# Application name and Config Service URI
+# ---------------------------------------
+spring:
+  application:
+    name: discovery-service
+  cloud:
+    config:
+      uri: http://localhost:${CONFIG_SERVICE_PORT:8888}
+      fail-fast: true
+      enabled: true
+
+# Information that gets displayed in the spring admin UI
+# ------------------------------------------------------
+info:
+  app:
+    name: ${spring.application.name}
+    description: Discovery Service
+
+---
+# -------------
+# Profile - Docker
+# -------------
+spring:
+  profiles: docker
+  cloud:
+    config:
+      uri: http://knowledge-hub-config-service:${ISY_CONFIG_SERVICE_PORT:8888}

@@ -1,0 +1,167 @@
+# Application Information
+# -----------------------
+info:
+  id: ${spring.application.name}
+
+# Log settings
+# ------------
+logging:
+  level:
+    com.netflix: ERROR
+    org.springframework: ${ISY_SPRING_LOGGING_LEVEL:ERROR}
+    com.knowledge.hub: ${ISY_LOGGING_LEVEL:INFO}
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: isymphony.log
+
+# Management security & Actuator endpoints
+# ----------------------------------------
+management:
+  context-path: /admin/actuator
+endpoints:
+  restart:
+    enabled: true
+  shutdown:
+    enabled: true
+  health:
+    sensitive: false
+
+# Eureka Settings
+# ---------------
+eureka:
+  instance:
+    leaseRenewalIntervalInSeconds: 10
+    health-check-url-path: ${management.context-path}/health
+    preferIpAddress: true
+  client:
+    registryFetchIntervalSeconds: 5
+    serviceUrl:
+      defaultZone: http://localhost:${DISCOVERY_SERVICE_PORT:8761}/eureka/
+
+---
+# Routes configuration
+# --------------------
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - PATCH
+              - PUT
+              - POST
+              - DELETE
+              - PATH
+              - OPTIONS
+            allowedHeaders:
+              - origin
+              - accept
+              - x-requested-with
+              - content-type
+              - access-control-request-method
+              - access-control-request-headers
+              - authorization
+            exposedHeaders:
+              - content-type
+              - content-disposition
+            allowCredentials: true
+            maxAge: 3600
+        addToSimpleUrlHandlerMapping: true
+
+# iSymphony Security aspects.
+com.knowledge.hub.configuration:
+  security:
+    endpoints:
+      unsecured:
+        - "/v3/api-docs/**"
+        - "/swagger-ui.html"
+        - "/swagger-ui/**"
+        - "/actuator/**"
+    cors:
+      headers:
+        allowed-origins:
+          - http://localhost:8080
+          - https://localhost:8080
+          - http://localhost:8082
+          - https://localhost:8082
+        allowed-methods:
+          - OPTIONS
+          - POST
+          - GET
+          - PATCH
+          - PUT
+          - DELETE
+        allowed-headers:
+          - Origin
+          - Accept
+          - X-Requested-With
+          - Content-Type
+          - Access-Control-Request-Method
+          - Access-Control-Request-Headers
+          - Authorization
+        max-age: 3600
+        allow-credentials: true
+    auth:
+      token:
+        secret: isymphony
+        expiration-interval-in-hours: 168
+  # API documentation settings.
+  # ---------------------------
+  api:
+    documentation:
+      title: knowledge-hub
+      description: This is a tutorials website.
+      license: GNU Lesser General Public License
+      licenseUrl: https://www.gnu.org/licenses/lgpl-3.0.en.html
+      version: 1.0.0
+      contact:
+        name: Admin
+        email: Admin
+      base-package: "com.knowledge.hub"
+      security-schema:
+        name: bearerAuth
+        scheme: bearer
+        type: HTTP
+        bearerFormat: JWT
+
+  # Data modeler properties
+  #------------------------
+  data-modeler:
+    restricted-schema-names:
+      - dbo
+      - guest
+      - sys
+      - INFORMATION_SCHEMA
+      - mydb
+      - public
+    default-schema:
+      name: default
+      display-name: Default Schema
+      description: Default schema of the database
+    change-db-object-names-to-lowercase: true
+  code:
+    generator:
+      configuration:
+        maven:
+          output-options:
+            code-path: ${ISYMPHONY_GENERATED_CODE_PATH:/opt/apps/innominds/isymphony/projects/code}
+            temp-work-directory: ${ISYMPHONY_TEMP_WORK_DIRECTORY_PATH:/opt/apps/innominds/isymphony/projects/temp}
+
+
+---
+# -------------
+# Profile - Docker
+# -------------
+spring:
+  profiles: docker
+
+# Eureka Settings
+# ---------------
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://knowledge-hub-discovery-service:${ISY_DISCOVERY_SERVICE_PORT:8761}/eureka/

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+
+    # Service - knowledge_hub_db-db-server
+    knowledge_hub_db-db-server:
+        container_name: knowledge_hub_db-db-server
+        image: mysql:8.0
+        restart: always
+        ports:
+            - "3306:3306"
+        environment:
+            - MYSQL_DATABASE=knowledge_hub_db
+            - MYSQL_PASSWORD=root
+            - MYSQL_USER=root
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DB=knowledge_hub_db
+
+# Service - knowledgehub-knowledgehub-service
+    knowledgehub-knowledgehub-service:
+        container_name: knowledgehub-knowledgehub-service
+        image: img/knowledgehub-knowledgehub-service:1.0.0
+        restart: always
+        ports:
+            - "9485:9485"
+        depends_on:
+            - knowledge_hub_db-db-server
+
